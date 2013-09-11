@@ -27,39 +27,6 @@
       return 180 * theta / Math.PI;
     };
 
-    GeopositionSimulator.prototype.haversine = function(angleRadians) {
-      return Math.sin(angleRadians / 2.0) * Math.sin(angleRadians / 2.0);
-    };
-
-    GeopositionSimulator.prototype.inverseHaversine = function(h) {
-      return 2 * Math.asin(Math.sqrt(h));
-    };
-
-    GeopositionSimulator.prototype.distanceBetweenPoints = function(p1, p2) {
-      var RADIUS, dlat, dlon, h, lat1, lat2, lon1, lon2;
-      lat1 = p1.latitude;
-      lat2 = p2.latitude;
-      lon1 = p1.longitude;
-      lon2 = p2.longitude;
-      RADIUS = 6371.0;
-      lat1 = this.rad(lat1);
-      lat2 = this.rad(lat2);
-      dlat = lat2 - lat1;
-      dlon = this.rad(lon2 - lon1);
-      h = this.haversine(dlat) + Math.cos(lat1) * Math.cos(lat2) * this.haversine(dlon);
-      return RADIUS * this.inverseHaversine(h);
-    };
-
-    GeopositionSimulator.prototype.distHaversine = function(p1, p2) {
-      var R, a, c, dLat, dLong;
-      R = 6371;
-      dLat = this.rad(p2.latitude - p1.latitude);
-      dLong = this.rad(p2.longitude - p1.longitude);
-      a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(this.rad(p1.latitude)) * Math.cos(this.rad(p2.latitude)) * Math.sin(dLong / 2) * Math.sin(dLong / 2);
-      c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    };
-
     GeopositionSimulator.prototype.boundingBox = function(position, distance) {
       var RADIUS, dlat, dlon, lat, lon;
       lat = position.latitude;
@@ -73,65 +40,8 @@
       };
     };
 
-    GeopositionSimulator.prototype.testHaversine = function(p1, p2) {
-      return this.distHaversine({
-        latitude: 40.713955826286046,
-        longitude: -74.00665283203125
-      }, {
-        latitude: 39.952335,
-        longitude: -75.163789
-      });
-    };
-
-    GeopositionSimulator.prototype.testDistanceBetweenPoints = function() {
-      return this.distanceBetweenPoints({
-        latitude: 40.713955826286046,
-        longitude: -74.00665283203125
-      }, {
-        latitude: 39.952335,
-        longitude: -75.163789
-      });
-    };
-
-    GeopositionSimulator.prototype.runTests = function() {
-      var d, dbp, delta, h, h1b, position1, position1b, position2;
-      position1 = {
-        latitude: 40.713955826286046,
-        longitude: -74.00665283203125
-      };
-      position2 = {
-        latitude: 39.952335,
-        longitude: -75.163789
-      };
-      console.log("Position 1: ", position1);
-      console.log("Position 2: ", position2);
-      console.log("Haversine");
-      h = this.distHaversine(position1, position2);
-      console.log(h);
-      console.log("DistanceBetweenPoints");
-      dbp = this.distanceBetweenPoints(position1, position2);
-      console.log(dbp);
-      console.log("Difference");
-      console.log(h - dbp);
-      d = 0.005;
-      console.log("BoundingBox Delta of ", d, " km from position 1");
-      delta = this.boundingBox(position1, d);
-      console.log(delta);
-      console.log("Previous position 1: ", position1);
-      position1b = {
-        latitude: position1.latitude + delta.latitude,
-        longitude: position1.longitude - delta.longitude
-      };
-      console.log("New position 1b:", position1b);
-      h1b = this.distanceBetweenPoints(position1, position1b);
-      return console.log("Distance between p1 and p1b: ", h1b);
-    };
-
     GeopositionSimulator.prototype.randomDeltaOfRadius = function(r) {
-      var result;
-      result = -r + Math.random() * 2 * r;
-      console.log("randomPointOfRadius ", -r, result, r);
-      return result;
+      return r * (Math.random() * 2 - 1);
     };
 
     GeopositionSimulator.prototype.generateNewPosition = function() {
