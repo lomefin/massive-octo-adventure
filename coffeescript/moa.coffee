@@ -3,7 +3,7 @@ window.simulated_geoposition or= {}
 window.simulated_geoposition.geolocation = class geolocation
 
   @currentSimulator = null
-
+  @watchIds = []
   @getSimulator: ()->
     if not @currentSimulator?
       @currentSimulator = new GeopositionSimulator()
@@ -16,8 +16,10 @@ window.simulated_geoposition.geolocation = class geolocation
 
 
   @watchPosition:(success,error,options) ->
-    @getCurrentPosition(success,error,options)
+    id = setInterval((()=> @getCurrentPosition(success,error,options)),options.interval)
+    @watchIds.append id
+    id
 
   @clearWatch:(watchId) ->
-    #do nothing
+    clearInterval watchId
 

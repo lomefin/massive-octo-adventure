@@ -9,6 +9,8 @@
 
     geolocation.currentSimulator = null;
 
+    geolocation.watchIds = [];
+
     geolocation.getSimulator = function() {
       if (this.currentSimulator == null) {
         this.currentSimulator = new GeopositionSimulator();
@@ -25,10 +27,18 @@
     };
 
     geolocation.watchPosition = function(success, error, options) {
-      return this.getCurrentPosition(success, error, options);
+      var id,
+        _this = this;
+      id = setInterval((function() {
+        return _this.getCurrentPosition(success, error, options);
+      }), options.interval);
+      this.watchIds.append(id);
+      return id;
     };
 
-    geolocation.clearWatch = function(watchId) {};
+    geolocation.clearWatch = function(watchId) {
+      return clearInterval(watchId);
+    };
 
     return geolocation;
 

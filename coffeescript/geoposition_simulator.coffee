@@ -2,9 +2,8 @@ class GeopositionSimulator
 
   constructor: (@options = {})->
     @bounds = if @options.bounds? then @options.bounds else {start:{latitude:33.3,longitude:70.5} , radius: 70000}
-    @step = if @options.step? then @options.step else 5 #5 meters
+    @MAX_STEP = if @options.step? then @options.step else 5 #5 meters
     @lastPosition = @bounds.start
-    console.log @lastPosition
 
   rad: (x)->
     x*Math.PI/180
@@ -78,7 +77,7 @@ class GeopositionSimulator
     h1b = @distanceBetweenPoints(position1,position1b)
     console.log "Distance between p1 and p1b: ", h1b
 
-  randomPointOfRadius: (r)->
+  randomDeltaOfRadius: (r)->
     result = -r + Math.random()*2*r
     #result = (Math.random()*2)*(r-1)
     console.log "randomPointOfRadius ", -r, result, r
@@ -86,11 +85,13 @@ class GeopositionSimulator
 
   generateNewPosition: ()=>
     
-    distance = @step/1000 #We work in meters.
+    distance = @MAX_STEP/1000 #We work in meters.
     delta = @boundingBox(@lastPosition,distance)
+    rDeltaLat = @randomDeltaOfRadius(delta.latitude)
+    rDeltaLng = @randomDeltaOfRadius(delta.longitude)
     newPosition = 
-                    latitude: @lastPosition.latitude + @randomPointOfRadius(delta.latitude)
-                    longitude: @lastPosition.longitude + @randomPointOfRadius(delta.longitude)
+                    latitude: @lastPosition.latitude + rDeltaLat
+                    longitude: @lastPosition.longitude + rDeltaLng
     difference = {latitude: newPosition.latitude-@lastPosition.latitude,longitude: newPosition.longitude-@lastPosition.longitude}
     newHeading = @deg(Math.atan(difference.latitude/difference.longitude))
     coords = 
@@ -101,7 +102,6 @@ class GeopositionSimulator
               altitudeAccuracy: 0
               heading: newHeading
               speed: 0
-    console.log "Generating new position from last position:", @lastPosition, ", result:", newPosition, " diff:", difference, "heading: ", newHeading
     @lastPosition = newPosition
 
     position =

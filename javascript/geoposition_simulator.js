@@ -15,9 +15,8 @@
         },
         radius: 70000
       };
-      this.step = this.options.step != null ? this.options.step : 5;
+      this.MAX_STEP = this.options.step != null ? this.options.step : 5;
       this.lastPosition = this.bounds.start;
-      console.log(this.lastPosition);
     }
 
     GeopositionSimulator.prototype.rad = function(x) {
@@ -128,7 +127,7 @@
       return console.log("Distance between p1 and p1b: ", h1b);
     };
 
-    GeopositionSimulator.prototype.randomPointOfRadius = function(r) {
+    GeopositionSimulator.prototype.randomDeltaOfRadius = function(r) {
       var result;
       result = -r + Math.random() * 2 * r;
       console.log("randomPointOfRadius ", -r, result, r);
@@ -136,12 +135,14 @@
     };
 
     GeopositionSimulator.prototype.generateNewPosition = function() {
-      var coords, delta, difference, distance, newHeading, newPosition, position;
-      distance = this.step / 1000;
+      var coords, delta, difference, distance, newHeading, newPosition, position, rDeltaLat, rDeltaLng;
+      distance = this.MAX_STEP / 1000;
       delta = this.boundingBox(this.lastPosition, distance);
+      rDeltaLat = this.randomDeltaOfRadius(delta.latitude);
+      rDeltaLng = this.randomDeltaOfRadius(delta.longitude);
       newPosition = {
-        latitude: this.lastPosition.latitude + this.randomPointOfRadius(delta.latitude),
-        longitude: this.lastPosition.longitude + this.randomPointOfRadius(delta.longitude)
+        latitude: this.lastPosition.latitude + rDeltaLat,
+        longitude: this.lastPosition.longitude + rDeltaLng
       };
       difference = {
         latitude: newPosition.latitude - this.lastPosition.latitude,
@@ -157,7 +158,6 @@
         heading: newHeading,
         speed: 0
       };
-      console.log("Generating new position from last position:", this.lastPosition, ", result:", newPosition, " diff:", difference, "heading: ", newHeading);
       this.lastPosition = newPosition;
       return position = {
         coords: coords,
