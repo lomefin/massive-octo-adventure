@@ -10,13 +10,15 @@
       this.generateNewPosition = __bind(this.generateNewPosition, this);
       this.bounds = this.options.bounds != null ? this.options.bounds : {
         start: {
-          latitude: -33.500053,
-          longitude: -70.613675
+          latitude: 33.3,
+          longitude: 70.5
         },
         radius: 70000
       };
       this.MAX_STEP = this.options.step != null ? this.options.step : 5;
       this.lastPosition = this.bounds.start;
+      this.lastPosition.timestamp = new Date();
+      this.RADIUS = 6371.0;
     }
 
     GeopositionSimulator.prototype.rad = function(x) {
@@ -27,13 +29,28 @@
       return 180 * theta / Math.PI;
     };
 
+    GeopositionSimulator.prototype.haversine = function(angleRadians) {
+      return Math.sin(angleRadians / 2.0) * Math.sin(angleRadians / 2.0);
+    };
+
+    GeopositionSimulator.prototype.inverseHaversine = function(h) {
+      return 2 * Math.asin(Math.sqrt(h));
+    };
+
+    GeopositionSimulator.prototype.distanceBetweenPoints = function(p1, p2) {
+      var dlat, dlon, h, lat1, lat2;
+      lat1 = this.rad(p1.latitude);
+      lat2 = this.rad(p2.latitude);
+      dlat = p2.latitude - p1.latitude;
+      dlon = this.rad(p2.longitude - p1.longitude);
+      h = this.haversine(dlat) + Math.cos(p1.latitude) * Math.cos(p2.latitude) * this.haversine(dlon);
+      return this.RADIUS * this.inverseHaversine(h);
+    };
+
     GeopositionSimulator.prototype.boundingBox = function(position, distance) {
-      var RADIUS, dlat, dlon, lat, lon;
-      lat = position.latitude;
-      lon = position.longitude;
-      RADIUS = 6371.0;
-      dlat = distance / RADIUS;
-      dlon = Math.asin(Math.sin(dlat) / Math.cos(this.rad(lat)));
+      var dlat, dlon;
+      dlat = distance / this.RADIUS;
+      dlon = Math.asin(Math.sin(dlat) / Math.cos(this.rad(position.latitude)));
       return {
         latitude: this.deg(dlat),
         longitude: this.deg(dlon)
@@ -45,20 +62,22 @@
     };
 
     GeopositionSimulator.prototype.generateNewPosition = function() {
-      var coords, delta, difference, distance, newHeading, newPosition, position, rDeltaLat, rDeltaLng;
+      var coords, delta, difference, distance, newHeading, newPosition, position, rDeltaLat, rDeltaLng, speed;
       distance = this.MAX_STEP / 1000;
       delta = this.boundingBox(this.lastPosition, distance);
       rDeltaLat = this.randomDeltaOfRadius(delta.latitude);
       rDeltaLng = this.randomDeltaOfRadius(delta.longitude);
       newPosition = {
         latitude: this.lastPosition.latitude + rDeltaLat,
-        longitude: this.lastPosition.longitude + rDeltaLng
+        longitude: this.lastPosition.longitude + rDeltaLng,
+        timestamp: new Date()
       };
       difference = {
         latitude: newPosition.latitude - this.lastPosition.latitude,
         longitude: newPosition.longitude - this.lastPosition.longitude
       };
       newHeading = this.deg(Math.atan(difference.latitude / difference.longitude));
+      speed = this.distanceBetweenPoints(newPosition, this.lastPosition) / (newPosition.timestamp - this.lastPosition.timestamp);
       coords = {
         latitude: newPosition.latitude,
         longitude: newPosition.longitude,
@@ -66,7 +85,7 @@
         accuracy: 0,
         altitudeAccuracy: 0,
         heading: newHeading,
-        speed: 0
+        speed: speed
       };
       this.lastPosition = newPosition;
       return position = {
