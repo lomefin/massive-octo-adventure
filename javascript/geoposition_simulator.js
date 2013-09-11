@@ -10,8 +10,8 @@
       this.generateNewPosition = __bind(this.generateNewPosition, this);
       this.bounds = this.options.bounds != null ? this.options.bounds : {
         start: {
-          latitude: 33.3,
-          longitude: 70.5
+          latitude: -33.500053,
+          longitude: -70.613675
         },
         radius: 70000
       };
